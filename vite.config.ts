@@ -7,18 +7,16 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      // اگر از alias برای مسیرها استفاده می‌کنید:
       '@': path.resolve(__dirname, 'src'),
     },
   },
   build: {
     rollupOptions: {
       external: [
-        // پکیج‌هایی که می‌خواهید به‌جای bundle شدن در build، external بمانند:
+        // لیست پکیج‌هایی که باید به صورت external باقی بمانند:
         'clsx',
-        // مثلا اگر بعدا ارور برای 'lodash' یا 'dayjs' یا …
-        // 'lodash',
-        // 'dayjs',
+        // اگر بستهٔ دیگری ارور می‌دهد، آن را اینجا اضافه کنید:
+        // 'some-other-package',
       ],
     },
   },
