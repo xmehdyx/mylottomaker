@@ -1,20 +1,21 @@
-// شبکه‌های پشتیبانی‌شده
+```ts
+// شبکه‌های USDT
 export type Network = 'solana' | 'tron' | 'bsc';
 
-// ساختار یک کیف‌پول در هر شبکه
+// کیف‌پول داخلی هر کاربر
 export interface Wallet {
   network: Network;
-  address: string;       // آدرس on‑chain
-  balance: number;       // موجودی USDT
+  address: string;
+  balance: number; // موجودی USDT
 }
 
-// گسترش نوع User برای نگه‌داشتن کیف‌پول‌های داخلی
+// گسترش User
 export interface User {
   id: string;
   username: string;
   email?: string;
-  wallets: Wallet[];     // کیف‌پول‌های درون‌برنامه‌ای
+  wallets: Wallet[];      // ← این خط را اضافه کن
   lotteryWon: number;
   lotteryCreated: number;
 }
-
+```
