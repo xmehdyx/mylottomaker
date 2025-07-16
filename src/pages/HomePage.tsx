@@ -8,7 +8,7 @@ import { useAppContext } from '../context/AppContext';
 import { formatCurrency } from '../utils/helpers';
 
 export const HomePage: React.FC = () => {
-  const { lotteries } = useAppContext();
+  const { lotteries = [] } = useAppContext();
   const [activeTab, setActiveTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
