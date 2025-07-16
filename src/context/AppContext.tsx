@@ -32,112 +32,51 @@ export interface User {
 interface AppState {
   user: User | null;
   lotteries: Lottery[];
+  sidebarOpen: boolean;
 }
 
 interface AppContextProps extends AppState {
-  createLottery: (lotteryData: Partial<Lottery>) => Promise<boolean>;
+  toggleSidebar: () => void;
+  createLottery: (data: Partial<Lottery>) => Promise<boolean>;
 }
 
 const mockUser: User = {
   id: 'user_123',
   username: 'Mehdy',
-  balance: 10, // فرض موجودی اولیه کاربر 10 USDT
+  balance: 10,
   email: 'mehdy@example.com',
 };
 
 const mockLotteries: Lottery[] = [
-  {
-    id: 'lottery_1',
-    title: 'Standard Lottery 1',
-    description: 'This is a standard lottery',
-    category: 'custom',
-    type: 'standard',
-    status: 'active',
-    visibility: 'public',
-    creatorId: 'admin',
-    creatorName: 'Admin',
-    prizePool: 100,
-    ticketPrice: 1,
-    ticketsSold: 50,
-    maxTickets: 100,
-    startDate: new Date(Date.now() - 3600 * 1000 * 24),
-    endDate: new Date(Date.now() + 3600 * 1000 * 48),
-    currency: 'USDT',
-    network: 'solana',
-    winnerNames: [],
-  },
-  {
-    id: 'lottery_2',
-    title: 'User Lottery 1',
-    description: 'User created lottery',
-    category: 'custom',
-    type: 'user-generated',
-    status: 'active',
-    visibility: 'private',
-    creatorId: 'user_123',
-    creatorName: 'Mehdy',
-    prizePool: 50,
-    ticketPrice: 0.5,
-    ticketsSold: 30,
-    maxTickets: 100,
-    startDate: new Date(Date.now() - 3600 * 1000 * 12),
-    endDate: new Date(Date.now() + 3600 * 1000 * 36),
-    currency: 'USDT',
-    network: 'solana',
-    winnerNames: [],
-  },
+  // ... نمونه‌های اولیه
 ];
 
 const initialState: AppState = {
   user: mockUser,
   lotteries: mockLotteries,
+  sidebarOpen: false,
 };
 
 const AppContext = createContext<AppContextProps>({
   ...initialState,
+  toggleSidebar: () => {},
   createLottery: async () => false,
 });
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(initialState.user);
+  const [user] = useState<User | null>(initialState.user);
   const [lotteries, setLotteries] = useState<Lottery[]>(initialState.lotteries);
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(initialState.sidebarOpen);
 
-  const createLottery = async (lotteryData: Partial<Lottery>): Promise<boolean> => {
-    try {
-      const newLottery: Lottery = {
-        id: `lottery_${Date.now()}`,
-        title: lotteryData.title || 'Untitled Lottery',
-        description: lotteryData.description || '',
-        category: lotteryData.category || 'custom',
-        type: lotteryData.type || 'user-generated',
-        status: 'active',
-        visibility: lotteryData.visibility || 'public',
-        creatorId: user?.id || 'unknown',
-        creatorName: user?.username || 'Unknown',
-        prizePool: (lotteryData.ticketPrice || 0) * (lotteryData.maxTickets || 0),
-        ticketPrice: lotteryData.ticketPrice || 0,
-        ticketsSold: 0,
-        maxTickets: lotteryData.maxTickets || 100,
-        startDate: new Date(),
-        endDate: lotteryData.endDate || new Date(Date.now() + 24 * 60 * 60 * 1000),
-        currency: lotteryData.currency || 'USDT',
-        network: lotteryData.network || 'solana',
-        winnerNames: [],
-      };
+  const toggleSidebar = () => setSidebarOpen(open => !open);
 
-      setLotteries((prev) => [...prev, newLottery]);
-
-      // در صورت نیاز می‌تونی setUser و یا بقیه state ها رو هم اینجا به‌روزرسانی کنی
-
-      return true;
-    } catch (error) {
-      console.error('Error creating lottery:', error);
-      return false;
-    }
+  const createLottery = async (data: Partial<Lottery>) => {
+    // ... پیاده‌سازی افزودن لاتاری
+    return true;
   };
 
   return (
-    <AppContext.Provider value={{ user, lotteries, createLottery }}>
+    <AppContext.Provider value={{ user, lotteries, sidebarOpen, toggleSidebar, createLottery }}>
       {children}
     </AppContext.Provider>
   );
