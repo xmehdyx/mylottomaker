@@ -1,78 +1,69 @@
+// types.ts
+
+// Supported networks for USDT
+export type Network = 'solana' | 'tron' | 'bsc';
+
+// Wallet interface
+export interface Wallet {
+  userId: string;
+  balances: {
+    [network in Network]: number;
+  };
+}
+
+// User model
 export interface User {
   id: string;
   username: string;
-  email: string;
-  walletAddress: string;
-  avatar?: string;
-  createdAt: Date;
-  balance: number;
-  lotteryCreated: number;
+  balance: number; // Optional legacy ETH balance
+  wallet: Wallet;
   lotteryWon: number;
+  lotteryCreated: number;
 }
 
+// Lottery model
 export interface Lottery {
   id: string;
   title: string;
   description: string;
-  type: 'standard' | 'user-generated';
-  category: 'daily' | 'weekly' | 'monthly' | 'yearly' | 'custom';
-  status: 'active' | 'completed' | 'cancelled';
+  type: 'daily' | 'weekly' | 'monthly' | 'standard' | 'user-generated';
+  category: string;
+  status: 'active' | 'ended';
   visibility: 'public' | 'private';
-  creatorId?: string;
-  creatorName?: string;
+  creatorId: string;
+  creatorName: string;
   prizePool: number;
   ticketPrice: number;
   ticketsSold: number;
-  maxTickets?: number;
+  maxTickets: number;
   startDate: Date;
   endDate: Date;
-  winnerIds?: string[];
-  winnerNames?: string[];
+  currency?: string; // e.g. USDT
+  network?: Network;
+  winnerNames: string[];
 }
 
-export interface Ticket {
-  id: string;
-  lotteryId: string;
-  userId: string;
-  purchaseDate: Date;
-  ticketNumber: string;
-  isWinner: boolean;
-}
-
+// Transaction model
 export interface Transaction {
   id: string;
   userId: string;
-  type: 'deposit' | 'withdrawal' | 'ticket-purchase' | 'lottery-win' | 'lottery-creation';
+  type: 'ticket-purchase' | 'lottery-creation' | 'deposit' | 'withdraw';
   amount: number;
   status: 'pending' | 'completed' | 'failed';
   timestamp: Date;
   description: string;
   lotteryId?: string;
   hash?: string;
+  network?: Network;
 }
 
+// Notification model
 export interface Notification {
   id: string;
   userId: string;
-  type: 'lottery-win' | 'lottery-result' | 'ticket-purchase' | 'lottery-ending-soon' | 'system';
+  type: 'ticket-purchase' | 'lottery-creation' | 'general' | 'balance-update';
   message: string;
   isRead: boolean;
   timestamp: Date;
   lotteryId?: string;
-}
-
-export interface AppState {
-  user: User | null;
-  isAuthenticated: boolean;
-  darkMode: boolean;
-  sidebarOpen: boolean;
-}
-
-export interface LotteryFilters {
-  type?: 'standard' | 'user-generated' | 'all';
-  category?: 'daily' | 'weekly' | 'monthly' | 'yearly' | 'custom' | 'all';
-  status?: 'active' | 'completed' | 'cancelled' | 'all';
-  visibility?: 'public' | 'private' | 'all';
-  sortBy?: 'endDate' | 'prizePool' | 'ticketPrice' | 'popularity';
-  sortOrder?: 'asc' | 'desc';
 }
