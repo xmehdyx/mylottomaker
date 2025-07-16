@@ -57,7 +57,7 @@ export const UserStats: React.FC<UserStatsProps> = ({ user }) => {
       />
       <StatCard
         title="Win Rate"
-        value={null}  {/* این رو حذف کردم چون داده ثابت و نمایشی بود */}
+        value={null} // این رو حذف کردم چون داده ثابت و نمایشی بود
         icon={<BarChart3 size={24} className="text-success-500" />}
         color="bg-success-900/30"
       />
