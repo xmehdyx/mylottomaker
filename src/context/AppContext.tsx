@@ -1,12 +1,9 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { AppState, User, Lottery, Transaction, Notification } from '../types';
-
-// توجه: داده‌های موک را خالی بگذار
-// اگر می‌خوای از فایل mockData استفاده نکنی، می‌تونی این داده‌ها رو اینجا تعریف کنی یا وارد کنی.
-// من فرض می‌کنم دیگه از mockData برای مقداردهی اولیه استفاده نمی‌کنیم.
+import { mockUser, mockLotteries, mockTransactions, mockNotifications } from '../data/mockData';
 
 const initialState: AppState = {
-  user: null,           // کاربر اولیه خالی
+  user: null,
   isAuthenticated: false,
   darkMode: true,
   sidebarOpen: false,
@@ -48,18 +45,22 @@ export const useAppContext = () => useContext(AppContext);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, setState] = useState<AppState>(initialState);
+  const [lotteries, setLotteries] = useState<Lottery[]>(mockLotteries);
+  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
+  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
 
-  // مقداردهی اولیه خالی برای لیست‌ها
-  const [lotteries, setLotteries] = useState<Lottery[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-
-  // فقط تنظیم حالت دارک مود از localStorage
+  // Auto-login with mock user for demo (optional)
   useEffect(() => {
     const storedDarkMode = localStorage.getItem('darkMode');
     if (storedDarkMode !== null) {
       setState((prev) => ({ ...prev, darkMode: storedDarkMode === 'true' }));
     }
+    // Comment this out if you want no user logged in by default
+    setState((prev) => ({
+      ...prev,
+      user: mockUser.id ? mockUser : null,
+      isAuthenticated: !!mockUser.id,
+    }));
   }, []);
 
   useEffect(() => {
@@ -101,8 +102,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }));
 
     // Update lottery tickets sold and prize pool
-    setLotteries(prev => prev.map(l => 
-      l.id === lotteryId 
+    setLotteries(prev => prev.map(l =>
+      l.id === lotteryId
         ? { ...l, ticketsSold: l.ticketsSold + quantity, prizePool: l.prizePool + totalCost }
         : l
     ));
@@ -116,8 +117,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       status: 'completed',
       timestamp: new Date(),
       description: `Purchased ${quantity} ticket${quantity > 1 ? 's' : ''} for ${lottery.title}`,
-      lotteryId: lotteryId,
-      hash: `0x${Math.random().toString(16).substr(2, 8)}...${Math.random().toString(16).substr(2, 4)}`,
+      lotteryId,
+      hash: `0x${Math.random().toString(16).slice(2, 10)}...${Math.random().toString(16).slice(2, 6)}`
     };
     setTransactions(prev => [transaction, ...prev]);
 
@@ -129,7 +130,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       message: `Successfully purchased ${quantity} ticket${quantity > 1 ? 's' : ''} for ${lottery.title}`,
       isRead: false,
       timestamp: new Date(),
-      lotteryId: lotteryId,
+      lotteryId,
     };
     setNotifications(prev => [notification, ...prev]);
 
@@ -158,13 +159,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       maxTickets: lotteryData.maxTickets,
       startDate: new Date(),
       endDate: lotteryData.endDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      winnerNames: [],
     };
 
     // Update user balance and lottery count
     setState(prev => ({
       ...prev,
-      user: prev.user ? { 
-        ...prev.user, 
+      user: prev.user ? {
+        ...prev.user,
         balance: prev.user.balance - creationFee,
         lotteryCreated: prev.user.lotteryCreated + 1
       } : null
@@ -183,7 +185,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       timestamp: new Date(),
       description: `Created lottery: ${newLottery.title}`,
       lotteryId: newLottery.id,
-      hash: `0x${Math.random().toString(16).substr(2, 8)}...${Math.random().toString(16).substr(2, 4)}`,
+      hash: `0x${Math.random().toString(16).slice(2, 10)}...${Math.random().toString(16).slice(2, 6)}`
     };
     setTransactions(prev => [transaction, ...prev]);
 
@@ -198,7 +200,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const markNotificationAsRead = (notificationId: string) => {
-    setNotifications(prev => prev.map(n => 
+    setNotifications(prev => prev.map(n =>
       n.id === notificationId ? { ...n, isRead: true } : n
     ));
   };
@@ -212,14 +214,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   return (
-    <AppContext.Provider value={{ 
-      state, 
+    <AppContext.Provider value={{
+      state,
       lotteries,
       transactions,
       notifications,
-      login, 
-      logout, 
-      toggleDarkMode, 
+      login,
+      logout,
+      toggleDarkMode,
       toggleSidebar,
       purchaseTicket,
       createLottery,
