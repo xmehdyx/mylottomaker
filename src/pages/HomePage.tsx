@@ -13,41 +13,34 @@ export const HomePage: React.FC = () => {
   const { lotteries } = useAppContext();
   const [activeTab, setActiveTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  
-  // Filter lotteries by status and search term
-  const activeLotteries = lotteries.filter(lottery => 
-    lottery.status === 'active' && 
+
+  const activeLotteries = lotteries.filter(lottery =>
+    lottery.status === 'active' &&
     lottery.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  
-  // Filter standard lotteries
+
   const standardLotteries = activeLotteries.filter(lottery => lottery.type === 'standard');
-  
-  // Filter user-generated lotteries
   const userLotteries = activeLotteries.filter(lottery => lottery.type === 'user-generated');
 
-  // Get ending soon lotteries (ending within 24 hours)
   const endingSoonLotteries = activeLotteries
     .filter(lottery => {
       const timeLeft = new Date(lottery.endDate).getTime() - new Date().getTime();
-      return timeLeft > 0 && timeLeft <= 24 * 60 * 60 * 1000; // 24 hours
+      return timeLeft > 0 && timeLeft <= 24 * 60 * 60 * 1000;
     })
     .slice(0, 2);
 
-  // Calculate total prize pool
   const totalPrizePool = activeLotteries.reduce((sum, lottery) => sum + lottery.prizePool, 0);
 
-  // Get highest prize lottery
-  const highestPrizeLottery = activeLotteries.reduce((max, lottery) => 
+  const highestPrizeLottery = activeLotteries.reduce((max, lottery) =>
     lottery.prizePool > max.prizePool ? lottery : max, activeLotteries[0] || { prizePool: 0 }
   );
-  
+
   return (
     <div>
       {/* Hero Section */}
       <div className="mb-8">
-        <Card 
-          variant="glass" 
+        <Card
+          variant="glass"
           className="bg-gradient-to-r from-primary-900/60 to-dark-800 border-primary-800/30 overflow-hidden"
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
@@ -59,8 +52,8 @@ export const HomePage: React.FC = () => {
                 Join the most trusted crypto lottery platform. Enter daily, weekly, and monthly draws or create your own lottery events. Smart contracts ensure transparency and fair play.
               </p>
               <div className="flex flex-wrap gap-4">
-                <Button 
-                  variant="accent" 
+                <Button
+                  variant="accent"
                   size="lg"
                   icon={<ChevronRight size={18} />}
                   iconPosition="right"
@@ -68,8 +61,8 @@ export const HomePage: React.FC = () => {
                 >
                   Browse Lotteries
                 </Button>
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="lg"
                 >
                   How It Works
@@ -102,7 +95,7 @@ export const HomePage: React.FC = () => {
           <h3 className="text-lg font-semibold text-white mb-1">Active Lotteries</h3>
           <p className="text-2xl font-bold text-primary-400">{activeLotteries.length}</p>
         </Card>
-        
+
         <Card variant="glass" className="text-center">
           <Trophy size={32} className="mx-auto text-accent-400 mb-3" />
           <h3 className="text-lg font-semibold text-white mb-1">Biggest Prize</h3>
@@ -110,7 +103,7 @@ export const HomePage: React.FC = () => {
             {formatCurrency(highestPrizeLottery?.prizePool || 0)} ETH
           </p>
         </Card>
-        
+
         <Card variant="glass" className="text-center">
           <Users size={32} className="mx-auto text-secondary-400 mb-3" />
           <h3 className="text-lg font-semibold text-white mb-1">Total Participants</h3>
@@ -119,7 +112,7 @@ export const HomePage: React.FC = () => {
           </p>
         </Card>
       </div>
-      
+
       {/* Active Lotteries Section */}
       <div className="mb-8">
         <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
@@ -136,8 +129,8 @@ export const HomePage: React.FC = () => {
                   className="pl-9 pr-4 py-2 bg-dark-600 border border-dark-500 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 w-full md:w-48 lg:w-64"
                 />
               </div>
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="sm"
                 icon={<Filter size={16} />}
               >
@@ -145,7 +138,7 @@ export const HomePage: React.FC = () => {
               </Button>
             </div>
           </div>
-          
+
           <TabsList className="bg-dark-700 p-1 rounded-lg">
             <TabsTrigger value="all" active={activeTab === 'all'}>
               All ({activeLotteries.length})
@@ -157,24 +150,24 @@ export const HomePage: React.FC = () => {
               User Created ({userLotteries.length})
             </TabsTrigger>
           </TabsList>
-          
+
           <div className="mt-6">
             <TabsContent value="all">
-              <LotteryGrid 
-                lotteries={activeLotteries} 
+              <LotteryGrid
+                lotteries={activeLotteries}
                 emptyMessage={searchTerm ? `No lotteries found for "${searchTerm}"` : "No active lotteries available"}
               />
             </TabsContent>
-            
+
             <TabsContent value="standard">
-              <LotteryGrid 
+              <LotteryGrid
                 lotteries={standardLotteries}
                 emptyMessage="No standard lotteries available"
               />
             </TabsContent>
-            
+
             <TabsContent value="user">
-              <LotteryGrid 
+              <LotteryGrid
                 lotteries={userLotteries}
                 emptyMessage="No user-created lotteries available"
               />
@@ -182,7 +175,7 @@ export const HomePage: React.FC = () => {
           </div>
         </Tabs>
       </div>
-      
+
       {/* Bottom Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
@@ -196,10 +189,10 @@ export const HomePage: React.FC = () => {
                 View All
               </Button>
             </div>
-            
+
             {endingSoonLotteries.length > 0 ? (
-              <LotteryGrid 
-                lotteries={endingSoonLotteries} 
+              <LotteryGrid
+                lotteries={endingSoonLotteries}
                 emptyMessage="No lotteries ending soon"
               />
             ) : (
@@ -210,7 +203,7 @@ export const HomePage: React.FC = () => {
             )}
           </Card>
         </div>
-        
+
         <div>
           <Card variant="glass">
             <div className="flex justify-between items-center mb-4">
@@ -219,19 +212,26 @@ export const HomePage: React.FC = () => {
                 View All
               </Button>
             </div>
-            
-            <div className="space-y-3">
-              {mockLeaderboard.slice(0, 3).map((winner, index) => (
-                <LeaderboardItem
-                  key={winner.id}
-                  position={index + 1}
-                  username={winner.username}
-                  avatar={winner.avatar}
-                  winnings={winner.winnings}
-                  lotteryWon={winner.lotteryWon}
-                />
-              ))}
-            </div>
+
+            {mockLeaderboard.length > 0 ? (
+              <div className="space-y-3">
+                {mockLeaderboard.slice(0, 3).map((winner, index) => (
+                  <LeaderboardItem
+                    key={winner.id}
+                    position={index + 1}
+                    username={winner.username}
+                    avatar={winner.avatar}
+                    winnings={winner.winnings}
+                    lotteryWon={winner.lotteryWon}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-400">
+                <Trophy size={48} className="mx-auto mb-4 opacity-50" />
+                <p>No winners yet. Be the first to win!</p>
+              </div>
+            )}
           </Card>
         </div>
       </div>
