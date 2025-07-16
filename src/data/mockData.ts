@@ -1,26 +1,28 @@
+// src/data/mockData.ts
+
 import { User, Lottery, Transaction, Notification, Wallet } from '../types';
 
-// نمونه کیف پول برای کاربر دمو
+// کیف پول داخلی کاربر
 const mockWallet: Wallet = {
   userId: 'user1',
   balances: {
-    solana: 50, // 50 USDT روی Solana
-    tron: 30,   // 30 USDT روی Tron
-    bsc: 100,   // 100 USDT روی BSC
+    solana: 12.4,
+    tron: 45.8,
+    bsc: 78.0,
   },
 };
 
-// کاربر آزمایشی
+// کاربر نمونه
 export const mockUser: User = {
   id: 'user1',
   username: 'demoUser',
-  balance: 0, // اگر از سیستم جدید کیف‌پول داخلی استفاده می‌کنی این فیلد فقط برای سازگاری نگه داشته شده
+  balance: 0, // فیلد قدیمی
   wallet: mockWallet,
-  lotteryWon: 2,
-  lotteryCreated: 1,
+  lotteryWon: 3,
+  lotteryCreated: 2,
 };
 
-// یک لاتاری نمونه
+// یک قرعه‌کشی واقعی USDT روی سولانا
 export const mockLotteries: Lottery[] = [
   {
     id: 'lottery1',
@@ -36,21 +38,40 @@ export const mockLotteries: Lottery[] = [
     ticketPrice: 5,
     ticketsSold: 20,
     maxTickets: 100,
-    startDate: new Date(Date.now() - 2 * 60 * 60 * 1000), // دو ساعت پیش
-    endDate: new Date(Date.now() + 6 * 60 * 60 * 1000),   // شش ساعت دیگه
+    startDate: new Date(Date.now() - 2 * 60 * 60 * 1000),
+    endDate: new Date(Date.now() + 6 * 60 * 60 * 1000),
     currency: 'USDT',
     network: 'solana',
     winnerNames: [],
   },
 ];
 
-// تراکنش‌های تستی (در صورت نیاز)
-export const mockTransactions: Transaction[] = [];
+// تراکنش‌های کاربر
+export const mockTransactions: Transaction[] = [
+  {
+    id: 'tx1',
+    userId: 'user1',
+    amount: 5,
+    type: 'ticketPurchase',
+    lotteryId: 'lottery1',
+    network: 'solana',
+    currency: 'USDT',
+    timestamp: new Date(),
+  },
+];
 
-// نوتیفیکیشن‌ها (در صورت نیاز)
-export const mockNotifications: Notification[] = [];
+// نوتیفیکیشن‌ها
+export const mockNotifications: Notification[] = [
+  {
+    id: 'notif1',
+    userId: 'user1',
+    message: 'You successfully entered Daily USDT Draw',
+    timestamp: new Date(),
+    read: false,
+  },
+];
 
-// لیدربرد آزمایشی
+// لیدربرد
 export const mockLeaderboard = [
   {
     id: '1',
@@ -58,19 +79,5 @@ export const mockLeaderboard = [
     avatar: '/avatars/user1.png',
     winnings: 250,
     lotteryWon: 'Daily USDT Draw',
-  },
-  {
-    id: '2',
-    username: 'luckyUser',
-    avatar: '/avatars/user2.png',
-    winnings: 120,
-    lotteryWon: 'Weekly Mega Draw',
-  },
-  {
-    id: '3',
-    username: 'cryptoQueen',
-    avatar: '/avatars/user3.png',
-    winnings: 95,
-    lotteryWon: 'Monthly Jackpot',
   },
 ];
