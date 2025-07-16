@@ -1,67 +1,53 @@
-// types.ts
+// src/types/index.ts
 
-// Supported networks for USDT
-export type Network = 'solana' | 'tron' | 'bsc';
-
-// Wallet interface
-export interface Wallet {
-  userId: string;
-  balances: {
-    [network in Network]: number;
-  };
-}
-
-// User model
+// تعریف نوع کاربر
 export interface User {
   id: string;
   username: string;
-  balance: number; // Optional legacy ETH balance
-  wallet: Wallet;
+  balance: number;
   lotteryWon: number;
   lotteryCreated: number;
+  walletAddress?: string; // مثلا برای کیف پول داخلی (اختیاری)
 }
 
-// Lottery model
+// تعریف نوع لاتاری
 export interface Lottery {
   id: string;
   title: string;
   description: string;
-  type: 'daily' | 'weekly' | 'monthly' | 'standard' | 'user-generated';
+  type: 'daily' | 'weekly' | 'monthly' | 'user-generated' | 'standard';
   category: string;
-  status: 'active' | 'ended';
+  status: 'active' | 'ended' | 'cancelled';
   visibility: 'public' | 'private';
   creatorId: string;
   creatorName: string;
   prizePool: number;
   ticketPrice: number;
   ticketsSold: number;
-  maxTickets: number;
+  maxTickets?: number;
   startDate: Date;
   endDate: Date;
-  currency?: string; // e.g. USDT
-  network?: Network;
   winnerNames: string[];
 }
 
-// Transaction model
+// تعریف نوع تراکنش
 export interface Transaction {
   id: string;
   userId: string;
-  type: 'ticket-purchase' | 'lottery-creation' | 'deposit' | 'withdraw';
+  type: 'ticket-purchase' | 'lottery-creation' | 'deposit' | 'withdrawal';
   amount: number;
   status: 'pending' | 'completed' | 'failed';
   timestamp: Date;
-  description: string;
+  description?: string;
   lotteryId?: string;
-  hash?: string;
-  network?: Network;
+  hash?: string; // هش تراکنش بلاکچین
 }
 
-// Notification model
+// تعریف نوع اعلان
 export interface Notification {
   id: string;
   userId: string;
-  type: 'ticket-purchase' | 'lottery-creation' | 'general' | 'balance-update';
+  type: 'ticket-purchase' | 'lottery-creation' | 'system';
   message: string;
   isRead: boolean;
   timestamp: Date;
