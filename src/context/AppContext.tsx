@@ -1,6 +1,11 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { AppState, User, Lottery, Transaction, Notification } from '../types';
-import { mockUser, mockLotteries, mockTransactions, mockNotifications } from '../data/mockData';
+import {
+  mockUser,
+  mockLotteries,
+  mockTransactions,
+  mockNotifications,
+} from '../data/mockData';
 
 const initialState: AppState = {
   user: null,
@@ -49,17 +54,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
 
-  // Auto-login with mock user for demo (optional)
+  // Load dark mode and auto-login mock user
   useEffect(() => {
     const storedDarkMode = localStorage.getItem('darkMode');
     if (storedDarkMode !== null) {
       setState((prev) => ({ ...prev, darkMode: storedDarkMode === 'true' }));
     }
-    // Comment this out if you want no user logged in by default
+
     setState((prev) => ({
       ...prev,
-      user: mockUser.id ? mockUser : null,
-      isAuthenticated: !!mockUser.id,
+      user: mockUser,
+      isAuthenticated: true,
     }));
   }, []);
 
@@ -89,24 +94,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const purchaseTicket = async (lotteryId: string, quantity: number = 1): Promise<boolean> => {
-    const lottery = lotteries.find(l => l.id === lotteryId);
+    const lottery = lotteries.find((l) => l.id === lotteryId);
     if (!lottery || !state.user) return false;
 
     const totalCost = lottery.ticketPrice * quantity;
-    if (state.user.balance < totalCost) return false;
+    if (state.user.wallet.usdt < totalCost) return false;
 
-    // Update user balance
-    setState(prev => ({
+    // Update balance
+    setState((prev) => ({
       ...prev,
-      user: prev.user ? { ...prev.user, balance: prev.user.balance - totalCost } : null
+      user: {
+        ...prev.user!,
+        wallet: {
+          ...prev.user!.wallet,
+          usdt: prev.user!.wallet.usdt - totalCost,
+        },
+      },
     }));
 
-    // Update lottery tickets sold and prize pool
-    setLotteries(prev => prev.map(l =>
-      l.id === lotteryId
-        ? { ...l, ticketsSold: l.ticketsSold + quantity, prizePool: l.prizePool + totalCost }
-        : l
-    ));
+    // Update lottery
+    setLotteries((prev) =>
+      prev.map((l) =>
+        l.id === lotteryId
+          ? {
+              ...l,
+              ticketsSold: l.ticketsSold + quantity,
+              prizePool: l.prizePool + totalCost,
+            }
+          : l
+      )
+    );
 
     // Add transaction
     const transaction: Transaction = {
@@ -118,117 +135,100 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       timestamp: new Date(),
       description: `Purchased ${quantity} ticket${quantity > 1 ? 's' : ''} for ${lottery.title}`,
       lotteryId,
-      hash: `0x${Math.random().toString(16).slice(2, 10)}...${Math.random().toString(16).slice(2, 6)}`
+      hash: `0x${Math.random().toString(16).slice(2, 8)}`,
     };
-    setTransactions(prev => [transaction, ...prev]);
-
-    // Add notification
-    const notification: Notification = {
-      id: Date.now().toString(),
-      userId: state.user.id,
-      type: 'ticket-purchase',
-      message: `Successfully purchased ${quantity} ticket${quantity > 1 ? 's' : ''} for ${lottery.title}`,
-      isRead: false,
-      timestamp: new Date(),
-      lotteryId,
-    };
-    setNotifications(prev => [notification, ...prev]);
+    setTransactions((prev) => [transaction, ...prev]);
 
     return true;
   };
 
-  const createLottery = async (lotteryData: Partial<Lottery>): Promise<boolean> => {
+  const createLottery = async (data: Partial<Lottery>): Promise<boolean> => {
     if (!state.user) return false;
+    const fee = 0.01;
 
-    const creationFee = 0.01; // 0.01 ETH creation fee
-    if (state.user.balance < creationFee) return false;
+    if (state.user.wallet.usdt < fee) return false;
 
     const newLottery: Lottery = {
       id: Date.now().toString(),
-      title: lotteryData.title || '',
-      description: lotteryData.description || '',
+      title: data.title || '',
+      description: data.description || '',
       type: 'user-generated',
-      category: lotteryData.category || 'custom',
+      category: data.category || 'custom',
       status: 'active',
-      visibility: lotteryData.visibility || 'public',
+      visibility: data.visibility || 'public',
       creatorId: state.user.id,
       creatorName: state.user.username,
       prizePool: 0,
-      ticketPrice: lotteryData.ticketPrice || 0.1,
+      ticketPrice: data.ticketPrice || 1,
       ticketsSold: 0,
-      maxTickets: lotteryData.maxTickets,
+      maxTickets: data.maxTickets || 100,
       startDate: new Date(),
-      endDate: lotteryData.endDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      endDate: data.endDate || new Date(Date.now() + 7 * 86400000),
       winnerNames: [],
     };
 
-    // Update user balance and lottery count
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      user: prev.user ? {
-        ...prev.user,
-        balance: prev.user.balance - creationFee,
-        lotteryCreated: prev.user.lotteryCreated + 1
-      } : null
+      user: {
+        ...prev.user!,
+        wallet: {
+          ...prev.user!.wallet,
+          usdt: prev.user!.wallet.usdt - fee,
+        },
+        lotteryCreated: prev.user!.lotteryCreated + 1,
+      },
     }));
 
-    // Add lottery
-    setLotteries(prev => [newLottery, ...prev]);
-
-    // Add transaction
-    const transaction: Transaction = {
-      id: Date.now().toString(),
-      userId: state.user.id,
-      type: 'lottery-creation',
-      amount: creationFee,
-      status: 'completed',
-      timestamp: new Date(),
-      description: `Created lottery: ${newLottery.title}`,
-      lotteryId: newLottery.id,
-      hash: `0x${Math.random().toString(16).slice(2, 10)}...${Math.random().toString(16).slice(2, 6)}`
-    };
-    setTransactions(prev => [transaction, ...prev]);
+    setLotteries((prev) => [newLottery, ...prev]);
 
     return true;
   };
 
   const updateBalance = (amount: number) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      user: prev.user ? { ...prev.user, balance: prev.user.balance + amount } : null
+      user: {
+        ...prev.user!,
+        wallet: {
+          ...prev.user!.wallet,
+          usdt: prev.user!.wallet.usdt + amount,
+        },
+      },
     }));
   };
 
   const markNotificationAsRead = (notificationId: string) => {
-    setNotifications(prev => prev.map(n =>
-      n.id === notificationId ? { ...n, isRead: true } : n
-    ));
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === notificationId ? { ...n, isRead: true } : n))
+    );
   };
 
-  const addTransaction = (transactionData: Omit<Transaction, 'id'>) => {
+  const addTransaction = (data: Omit<Transaction, 'id'>) => {
     const transaction: Transaction = {
-      ...transactionData,
+      ...data,
       id: Date.now().toString(),
     };
-    setTransactions(prev => [transaction, ...prev]);
+    setTransactions((prev) => [transaction, ...prev]);
   };
 
   return (
-    <AppContext.Provider value={{
-      state,
-      lotteries,
-      transactions,
-      notifications,
-      login,
-      logout,
-      toggleDarkMode,
-      toggleSidebar,
-      purchaseTicket,
-      createLottery,
-      updateBalance,
-      markNotificationAsRead,
-      addTransaction,
-    }}>
+    <AppContext.Provider
+      value={{
+        state,
+        lotteries,
+        transactions,
+        notifications,
+        login,
+        logout,
+        toggleDarkMode,
+        toggleSidebar,
+        purchaseTicket,
+        createLottery,
+        updateBalance,
+        markNotificationAsRead,
+        addTransaction,
+      }}
+    >
       {children}
     </AppContext.Provider>
   );
