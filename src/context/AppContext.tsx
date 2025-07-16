@@ -1,9 +1,12 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { AppState, User, Lottery, Transaction, Notification } from '../types';
-import { mockUser, mockLotteries, mockTransactions, mockNotifications } from '../data/mockData';
+
+// توجه: داده‌های موک را خالی بگذار
+// اگر می‌خوای از فایل mockData استفاده نکنی، می‌تونی این داده‌ها رو اینجا تعریف کنی یا وارد کنی.
+// من فرض می‌کنم دیگه از mockData برای مقداردهی اولیه استفاده نمی‌کنیم.
 
 const initialState: AppState = {
-  user: null,
+  user: null,           // کاربر اولیه خالی
   isAuthenticated: false,
   darkMode: true,
   sidebarOpen: false,
@@ -45,22 +48,18 @@ export const useAppContext = () => useContext(AppContext);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, setState] = useState<AppState>(initialState);
-  const [lotteries, setLotteries] = useState<Lottery[]>(mockLotteries);
-  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
 
-  // Auto-login with mock user for demo
+  // مقداردهی اولیه خالی برای لیست‌ها
+  const [lotteries, setLotteries] = useState<Lottery[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  // فقط تنظیم حالت دارک مود از localStorage
   useEffect(() => {
     const storedDarkMode = localStorage.getItem('darkMode');
     if (storedDarkMode !== null) {
       setState((prev) => ({ ...prev, darkMode: storedDarkMode === 'true' }));
     }
-    
-    setState((prev) => ({ 
-      ...prev, 
-      user: mockUser,
-      isAuthenticated: true 
-    }));
   }, []);
 
   useEffect(() => {
@@ -101,7 +100,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       user: prev.user ? { ...prev.user, balance: prev.user.balance - totalCost } : null
     }));
 
-    // Update lottery tickets sold
+    // Update lottery tickets sold and prize pool
     setLotteries(prev => prev.map(l => 
       l.id === lotteryId 
         ? { ...l, ticketsSold: l.ticketsSold + quantity, prizePool: l.prizePool + totalCost }
