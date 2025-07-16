@@ -1,26 +1,36 @@
 import React, { useState } from 'react';
+import Link from 'next/link'; // فرض Next.js برای روتینگ
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/common/Tabs';
 import { LotteryGrid } from '../components/lotteries/LotteryGrid';
 import { Button } from '../components/common/Button';
 import { Card } from '../components/common/Card';
 import { ChevronRight, Trophy, Search, Filter, TrendingUp, Clock, Users } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
-import { formatCurrency } from '../utils/helpers';
+
+// فرمت کردن عدد با کاما و اضافه کردن واحد USDT
+const formatUSDT = (num: number) =>
+  num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' USDT';
 
 export const HomePage: React.FC = () => {
   const { lotteries } = useAppContext();
+
   const [activeTab, setActiveTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [networkFilter, setNetworkFilter] = useState<'all' | 'solana' | 'tron' | 'bsc'>('all');
 
-  const activeLotteries = lotteries.filter(
-    lottery =>
-      lottery.status === 'active' &&
-      lottery.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // فیلتر بر اساس فعال بودن، جستجو، و شبکه
+  const activeLotteries = lotteries.filter((lottery) => {
+    if (lottery.status !== 'active') return false;
+    if (!lottery.title.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+    if (networkFilter !== 'all' && lottery.network !== networkFilter) return false;
+    return true;
+  });
 
+  // دسته‌بندی براساس نوع قرعه‌کشی
   const standardLotteries = activeLotteries.filter(lottery => lottery.type === 'standard');
   const userLotteries = activeLotteries.filter(lottery => lottery.type === 'user-generated');
 
+  // قرعه‌کشی‌هایی که تا 24 ساعت آینده تموم میشن (حداکثر 2تا)
   const endingSoonLotteries = activeLotteries
     .filter(lottery => {
       const timeLeft = new Date(lottery.endDate).getTime() - Date.now();
@@ -28,18 +38,17 @@ export const HomePage: React.FC = () => {
     })
     .slice(0, 2);
 
+  // محاسبه کل جایزه‌ها و کل شرکت‌کننده‌ها
   const totalPrizePool = activeLotteries.reduce((sum, lottery) => sum + lottery.prizePool, 0);
-
   const highestPrizeLottery = activeLotteries.reduce(
     (max, lottery) => (lottery.prizePool > (max?.prizePool || 0) ? lottery : max),
     null as typeof lotteries[0] | null
   );
-
   const totalParticipants = activeLotteries.reduce((sum, lottery) => sum + lottery.ticketsSold, 0);
 
   return (
     <div>
-      {/* Hero Section */}
+      {/* بخش هِرو */}
       <div className="mb-8">
         <Card variant="glass" className="bg-gradient-to-r from-primary-900/60 to-dark-800 border-primary-800/30 overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
@@ -54,7 +63,7 @@ export const HomePage: React.FC = () => {
                 <Button variant="accent" size="lg" icon={<ChevronRight size={18} />} iconPosition="right" onClick={() => setActiveTab('all')}>
                   Browse Lotteries
                 </Button>
-                <Button variant="ghost" size="lg">
+                <Button variant="ghost" size="lg" onClick={() => alert('How It Works: Smart contract-based crypto lotteries with transparent results.')}>
                   How It Works
                 </Button>
               </div>
@@ -66,7 +75,7 @@ export const HomePage: React.FC = () => {
                 <div className="relative z-10 text-center">
                   <Trophy size={80} className="text-accent-400 mx-auto mb-3" />
                   <p className="text-sm text-gray-300 mb-1">Total Prize Pool</p>
-                  <p className="text-3xl font-bold text-accent-400 animate-glow">{formatCurrency(totalPrizePool)} USDT</p>
+                  <p className="text-3xl font-bold text-accent-400 animate-glow">{formatUSDT(totalPrizePool)}</p>
                 </div>
               </div>
             </div>
@@ -74,51 +83,67 @@ export const HomePage: React.FC = () => {
         </Card>
       </div>
 
-      {/* Stats Section */}
+      {/* آمار کلیدی */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card variant="glass" className="text-center">
+        <Card variant="glass" className="text-center cursor-default">
           <TrendingUp size={32} className="mx-auto text-primary-400 mb-3" />
           <h3 className="text-lg font-semibold text-white mb-1">Active Lotteries</h3>
           <p className="text-2xl font-bold text-primary-400">{activeLotteries.length}</p>
         </Card>
 
-        <Card variant="glass" className="text-center">
+        <Card variant="glass" className="text-center cursor-default">
           <Trophy size={32} className="mx-auto text-accent-400 mb-3" />
           <h3 className="text-lg font-semibold text-white mb-1">Biggest Prize</h3>
           <p className="text-2xl font-bold text-accent-400">
-            {formatCurrency(highestPrizeLottery?.prizePool || 0)} USDT
+            {highestPrizeLottery ? formatUSDT(highestPrizeLottery.prizePool) : '0.00 USDT'}
           </p>
+          {highestPrizeLottery && (
+            <p className="text-gray-400 text-sm mt-1">
+              {highestPrizeLottery.title}
+            </p>
+          )}
         </Card>
 
-        <Card variant="glass" className="text-center">
+        <Card variant="glass" className="text-center cursor-default">
           <Users size={32} className="mx-auto text-secondary-400 mb-3" />
           <h3 className="text-lg font-semibold text-white mb-1">Total Participants</h3>
           <p className="text-2xl font-bold text-secondary-400">{totalParticipants}</p>
         </Card>
       </div>
 
-      {/* Lotteries Tabs */}
+      {/* فیلتر شبکه و تب‌های قرعه‌کشی */}
       <div className="mb-8">
-        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
-            <h2 className="text-xl font-bold">Active Lotteries</h2>
-            <div className="flex space-x-2 w-full md:w-auto">
-              <div className="relative flex-1 md:flex-none">
-                <Search size={16} className="absolute left-3 top-2.5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search lotteries..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9 pr-4 py-2 bg-dark-600 border border-dark-500 rounded-lg text-sm w-full md:w-48 lg:w-64"
-                />
-              </div>
-              <Button variant="ghost" size="sm" icon={<Filter size={16} />}>
-                Filter
-              </Button>
-            </div>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-4">
+          <div className="flex space-x-2 items-center">
+            <label htmlFor="networkFilter" className="text-white font-medium">
+              Network:
+            </label>
+            <select
+              id="networkFilter"
+              value={networkFilter}
+              onChange={(e) => setNetworkFilter(e.target.value as typeof networkFilter)}
+              className="bg-dark-600 border border-dark-500 rounded-lg px-3 py-1 text-white"
+            >
+              <option value="all">All</option>
+              <option value="solana">Solana</option>
+              <option value="tron">Tron</option>
+              <option value="bsc">BSC</option>
+            </select>
           </div>
 
+          <div className="relative w-full md:w-auto">
+            <Search size={16} className="absolute left-3 top-2.5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search lotteries..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 pr-4 py-2 bg-dark-600 border border-dark-500 rounded-lg text-sm w-full md:w-64"
+            />
+          </div>
+        </div>
+
+        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="bg-dark-700 p-1 rounded-lg">
             <TabsTrigger value="all" active={activeTab === 'all'}>All ({activeLotteries.length})</TabsTrigger>
             <TabsTrigger value="standard" active={activeTab === 'standard'}>Standard ({standardLotteries.length})</TabsTrigger>
@@ -130,6 +155,21 @@ export const HomePage: React.FC = () => {
               <LotteryGrid
                 lotteries={activeLotteries}
                 emptyMessage={searchTerm ? `No lotteries found for "${searchTerm}"` : 'No active lotteries available.'}
+                renderLottery={(lottery) => (
+                  <Link key={lottery.id} href={`/lottery/${lottery.id}`} passHref>
+                    <a className="block hover:bg-dark-700 p-4 rounded-lg transition-colors">
+                      <div className="flex justify-between items-center">
+                        <h3 className="text-lg font-semibold text-white">{lottery.title}</h3>
+                        <Trophy size={20} className="text-accent-400" />
+                      </div>
+                      <p className="text-gray-400 mt-1">{lottery.description}</p>
+                      <div className="mt-2 flex justify-between text-sm text-gray-400">
+                        <span>Prize Pool: {formatUSDT(lottery.prizePool)}</span>
+                        <span>Tickets Sold: {lottery.ticketsSold}/{lottery.maxTickets}</span>
+                      </div>
+                    </a>
+                  </Link>
+                )}
               />
             </TabsContent>
             <TabsContent value="standard">
@@ -148,7 +188,7 @@ export const HomePage: React.FC = () => {
         </Tabs>
       </div>
 
-      {/* Ending Soon Section */}
+      {/* بخش قرعه‌کشی‌های در حال اتمام */}
       <div className="mb-8">
         <Card variant="glass">
           <div className="flex justify-between items-center mb-4">
