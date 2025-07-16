@@ -1,14 +1,12 @@
-// src/data/mockData.ts
+import { User, Lottery, Transaction, Notification, Wallet } from '../types';
 
-import { User, Lottery, Transaction, Notification, Wallet, Network } from '../types';
-
-// نمونه کیف پول برای کاربر آزمایشی
+// نمونه کیف پول برای کاربر دمو
 const mockWallet: Wallet = {
   userId: 'user1',
   balances: {
-    solana: 50,
-    tron: 30,
-    bsc: 100,
+    solana: 50, // 50 USDT روی Solana
+    tron: 30,   // 30 USDT روی Tron
+    bsc: 100,   // 100 USDT روی BSC
   },
 };
 
@@ -16,13 +14,13 @@ const mockWallet: Wallet = {
 export const mockUser: User = {
   id: 'user1',
   username: 'demoUser',
-  balance: 0, // legacy balance, می‌تونه صفر باشه
+  balance: 0, // اگر از سیستم جدید کیف‌پول داخلی استفاده می‌کنی این فیلد فقط برای سازگاری نگه داشته شده
   wallet: mockWallet,
   lotteryWon: 2,
   lotteryCreated: 1,
 };
 
-// نمونه قرعه‌کشی
+// یک لاتاری نمونه
 export const mockLotteries: Lottery[] = [
   {
     id: 'lottery1',
@@ -38,18 +36,18 @@ export const mockLotteries: Lottery[] = [
     ticketPrice: 5,
     ticketsSold: 20,
     maxTickets: 100,
-    startDate: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 ساعت پیش
-    endDate: new Date(Date.now() + 6 * 60 * 60 * 1000),   // 6 ساعت بعد
+    startDate: new Date(Date.now() - 2 * 60 * 60 * 1000), // دو ساعت پیش
+    endDate: new Date(Date.now() + 6 * 60 * 60 * 1000),   // شش ساعت دیگه
     currency: 'USDT',
     network: 'solana',
     winnerNames: [],
   },
 ];
 
-// تراکنش‌ها
+// تراکنش‌های تستی (در صورت نیاز)
 export const mockTransactions: Transaction[] = [];
 
-// نوتیفیکیشن‌ها
+// نوتیفیکیشن‌ها (در صورت نیاز)
 export const mockNotifications: Notification[] = [];
 
 // لیدربرد آزمایشی
